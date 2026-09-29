@@ -1,0 +1,6 @@
+{
+  "name": "محرك البرومبت الفيزيائي | Physics Prompt Engine",
+  "description": "توليد برومبتات فيزيائية صارمة وعالية الدقة موجهة إلى ChatGPT و Gemini مع محاكاة البصريات والمواد والكاميرا والبيولوجيا الدقيقة لمنع التجميل الاصطناعي.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
