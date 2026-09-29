@@ -1,16 +1,17 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { SelfieSceneState } from '@/types/selfie-engine';
 import {
   Sparkles,
-  MapPin,
-  Car,
-  Coffee,
   Waves,
-  ShoppingBag,
+  Coffee,
+  Car,
   Building,
   Compass,
+  ShoppingBag,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 export interface SelfieArchetype {
@@ -26,7 +27,7 @@ export interface SelfieArchetype {
 export const SELFIE_ARCHETYPES: SelfieArchetype[] = [
   {
     id: 'jeddah_corniche_sunset',
-    titleAr: 'كورنيش جدة البحري (غروب ورطوبة)',
+    titleAr: 'كورنيش جدة (غروب ورطوبة)',
     titleEn: 'Jeddah Corniche Sunset',
     badgeAr: 'واجهة بحرية',
     badgeEn: 'Waterfront',
@@ -74,7 +75,7 @@ export const SELFIE_ARCHETYPES: SelfieArchetype[] = [
   },
   {
     id: 'car_driver_stationary',
-    titleAr: 'مقعد السائق (سيارة متوقفة بأمان)',
+    titleAr: 'مقعد السائق (سيارة متوقفة)',
     titleEn: 'Stationary Driver Seat',
     badgeAr: 'كابينة سيارة',
     badgeEn: 'Car Cabin',
@@ -98,8 +99,8 @@ export const SELFIE_ARCHETYPES: SelfieArchetype[] = [
   },
   {
     id: 'elevator_mirror_modern',
-    titleAr: 'مرآة مصعد مبنى (انعكاس هاتف دقيق)',
-    titleEn: 'Elevator Mirror Selfie',
+    titleAr: 'مرآة مصعد (انعكاس هاتف)',
+    titleEn: 'Elevator Mirror',
     badgeAr: 'سيلفي مرآة',
     badgeEn: 'Mirror Reflection',
     icon: Building,
@@ -122,8 +123,8 @@ export const SELFIE_ARCHETYPES: SelfieArchetype[] = [
   },
   {
     id: 'desert_highway_pullout',
-    titleAr: 'استراحة طريق صحراوي (شمس وأفق)',
-    titleEn: 'Desert Highway Pullout',
+    titleAr: 'استراحة طريق صحراوي',
+    titleEn: 'Desert Highway Stop',
     badgeAr: 'طريق صحراوي',
     badgeEn: 'Desert Stop',
     icon: Compass,
@@ -146,7 +147,7 @@ export const SELFIE_ARCHETYPES: SelfieArchetype[] = [
   },
   {
     id: 'supermarket_casual_aisle',
-    titleAr: 'ممر تموينات وسوبرماركت (سلة تسوق)',
+    titleAr: 'ممر سوبرماركت (سلة تسوق)',
     titleEn: 'Supermarket Aisle',
     badgeAr: 'تسوق يومي',
     badgeEn: 'Daily Grocery',
@@ -182,51 +183,65 @@ export function SelfiePresetsBar({
   language,
 }: SelfiePresetsBarProps) {
   const isAr = language === 'ar';
+  const [isOpen, setIsOpen] = useState(false);
+
+  const activePreset = SELFIE_ARCHETYPES.find((a) => a.id === activeId);
 
   return (
-    <div className="w-full space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5 uppercase tracking-wider">
+    <div className="w-full bg-zinc-950/80 border border-zinc-800/80 rounded-xl overflow-hidden transition-all">
+      {/* Compact Header Bar (Requirement 5) */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs text-zinc-300 hover:text-zinc-100 hover:bg-zinc-900/50 transition"
+      >
+        <div className="flex items-center gap-2">
           <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-          {isAr ? 'سيناريوهات سيلفي نموذجية متوافقة فيزيائياً' : 'Verified Realistic Selfie Archetypes'}
-        </span>
-        <span className="text-[11px] text-zinc-500 hidden sm:inline">
-          {isAr ? 'تجهيز المشهد كاملاً بضغطة زر' : '1-Click Complete Scene Setup'}
-        </span>
-      </div>
+          <span className="font-semibold">{isAr ? 'سيناريوهات سريعة (Quick Presets)' : 'Quick Presets'}</span>
+          {activePreset && (
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-zinc-300">
+              {isAr ? activePreset.titleAr : activePreset.titleEn}
+            </span>
+          )}
+        </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-        {SELFIE_ARCHETYPES.map((arch) => {
-          const Icon = arch.icon;
-          const isActive = activeId === arch.id;
+        <div className="flex items-center gap-1.5 text-zinc-400 text-[11px]">
+          <span>{isOpen ? (isAr ? 'إخفاء' : 'Collapse') : (isAr ? 'عرض النماذج' : 'Expand')}</span>
+          {isOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+        </div>
+      </button>
 
-          return (
-            <button
-              key={arch.id}
-              onClick={() => onSelectArchetype(arch)}
-              className={`text-start p-2.5 rounded-xl border transition-all relative overflow-hidden group flex flex-col justify-between ${
-                isActive
-                  ? 'bg-zinc-900 border-emerald-500/70 shadow-[0_0_15px_rgba(16,185,129,0.2)] ring-1 ring-emerald-500/50'
-                  : 'bg-zinc-900/60 hover:bg-zinc-900 border-zinc-800 hover:border-zinc-700'
-              }`}
-            >
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="p-1 rounded-lg bg-zinc-800 text-zinc-300 group-hover:text-emerald-400 group-hover:scale-110 transition">
-                    <Icon className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-zinc-800/80 text-zinc-400 border border-zinc-700/50">
-                    {isAr ? arch.badgeAr : arch.badgeEn}
-                  </span>
+      {/* Collapsible Content */}
+      {isOpen && (
+        <div className="p-3 border-t border-zinc-800/80 bg-zinc-900/30 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 animate-in fade-in">
+          {SELFIE_ARCHETYPES.map((arch) => {
+            const Icon = arch.icon;
+            const isActive = activeId === arch.id;
+
+            return (
+              <button
+                key={arch.id}
+                onClick={() => {
+                  onSelectArchetype(arch);
+                  setIsOpen(false);
+                }}
+                className={`text-start p-2 rounded-lg border transition-all text-xs flex flex-col justify-between ${
+                  isActive
+                    ? 'bg-zinc-900 border-emerald-500/70 text-emerald-300 shadow-sm'
+                    : 'bg-zinc-900/60 hover:bg-zinc-900 border-zinc-800 text-zinc-300 hover:border-zinc-700'
+                }`}
+              >
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Icon className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span className="font-bold line-clamp-1">{isAr ? arch.titleAr : arch.titleEn}</span>
                 </div>
-                <span className="text-xs font-bold text-zinc-200 line-clamp-1 block">
-                  {isAr ? arch.titleAr : arch.titleEn}
+                <span className="text-[10px] text-zinc-400 font-mono">
+                  {isAr ? arch.badgeAr : arch.badgeEn}
                 </span>
-              </div>
-            </button>
-          );
-        })}
-      </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

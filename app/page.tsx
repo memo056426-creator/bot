@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   PhysicsPromptConfig,
   GeneratedPrompts,
@@ -30,8 +30,9 @@ import { SelfieSceneComposer } from '@/components/selfie/SelfieSceneComposer';
 import { PhysicalValidationCard } from '@/components/selfie/PhysicalValidationCard';
 import { SpatialVisualizer } from '@/components/selfie/SpatialVisualizer';
 import { SelfieOutputView } from '@/components/selfie/SelfieOutputView';
+import { LiveSceneSummary } from '@/components/selfie/LiveSceneSummary';
 
-import { Atom, Smartphone, Sparkles, Layers, ShieldCheck, Compass } from 'lucide-react';
+import { Atom, Smartphone, Compass } from 'lucide-react';
 
 export default function Home() {
   const [appMode, setAppMode] = useState<'selfie' | 'general_physics'>('selfie');
@@ -55,6 +56,9 @@ export default function Home() {
   // Modals
   const [isSimulationOpen, setIsSimulationOpen] = useState(false);
   const [isRulesOpen, setIsRulesOpen] = useState(false);
+
+  // Ref to scroll to prompt output
+  const promptOutputRef = useRef<HTMLDivElement>(null);
 
   const isAr = language === 'ar';
 
@@ -132,6 +136,12 @@ export default function Home() {
     setSelfiePrompts(compileSelfiePrompts(correctedState));
   };
 
+  const handleScrollToPrompt = () => {
+    if (promptOutputRef.current) {
+      promptOutputRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   const getCurrentPromptForSim = (): string => {
     if (appMode === 'selfie') {
       return selfiePrompts.chatgptPrompt;
@@ -155,112 +165,51 @@ export default function Home() {
       dir={isAr ? 'rtl' : 'ltr'}
       className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-emerald-500/30 selection:text-emerald-200"
     >
-      {/* Top Navigation */}
+      {/* 1. HEADER (Requirement 1: Compact, clean, with integrated Mode Selector) */}
       <Navbar
         language={language}
         onToggleLanguage={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
         onOpenRules={() => setIsRulesOpen(true)}
         onReset={handleReset}
+        appMode={appMode}
+        onSelectMode={(mode) => setAppMode(mode)}
       />
 
-      {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-7 space-y-6">
-        {/* Mode Switcher Banner */}
-        <div className="flex items-center justify-center">
-          <div className="inline-flex p-1 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-xl">
-            <button
-              onClick={() => setAppMode('selfie')}
-              className={`flex items-center gap-2 px-4 sm:px-6 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
-                appMode === 'selfie'
-                  ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-zinc-950 shadow-[0_0_20px_rgba(16,185,129,0.3)]'
-                  : 'text-zinc-400 hover:text-zinc-200'
-              }`}
-            >
-              <Smartphone className="w-4 h-4" />
-              <span>{isAr ? 'سيلفي التوافق المشهدي (Scene Compatibility Studio)' : 'Selfie Scene Compatibility Studio'}</span>
-            </button>
-
-            <button
-              onClick={() => setAppMode('general_physics')}
-              className={`flex items-center gap-2 px-4 sm:px-6 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
-                appMode === 'general_physics'
-                  ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-zinc-950 shadow-[0_0_20px_rgba(6,182,212,0.3)]'
-                  : 'text-zinc-400 hover:text-zinc-200'
-              }`}
-            >
-              <Atom className="w-4 h-4" />
-              <span>{isAr ? 'المحرك الفيزيائي العام (General Physics Engine)' : 'General Physics Engine'}</span>
-            </button>
-          </div>
-        </div>
-
-        {/* MODE 1: SELFIE SCENE COMPATIBILITY WORKSTATION (2-COLUMN SPLIT STUDIO) */}
+      {/* Main Content Area */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
+        {/* MODE 1: SELFIE SCENE COMPATIBILITY STUDIO */}
         {appMode === 'selfie' && (
-          <div className="space-y-6">
-            {/* Hero Section */}
-            <section className="text-center space-y-2 relative py-1">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
-                <Compass className="w-3.5 h-3.5" />
-                <span>
-                  {isAr
-                    ? 'نظام التوافق المشهدي: Location → Pose → Geometry → Light → Physics'
-                    : 'Real-Time Scene Compatibility & Biomechanics Engine'}
-                </span>
-              </div>
-
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-100">
-                {isAr ? (
-                  <>
-                    استوديو توليد سيلفي واقعي لـ{' '}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">
-                      ChatGPT و Gemini
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    Realistic Selfie Scene Studio for{' '}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">
-                      ChatGPT & Gemini
-                    </span>
-                  </>
-                )}
-              </h1>
-
-              <p className="max-w-2xl mx-auto text-xs text-zinc-400 leading-relaxed">
-                {isAr
-                  ? 'صورة هاتف حقيقية التقطها شخص في مكان حقيقي وليس جلسة تصوير مصطنعة. فلترة تلقائية تمنع التناقضات الفيزيائية بمسافة الذراع وانضغاط المقعد والإضاءة المبررة.'
-                  : 'Authentic smartphone front-camera selfies. Automatically enforces arm-reach limits, seat compression, and diegetic lighting.'}
-              </p>
-            </section>
-
-            {/* Quick Selfie Archetypes Bar */}
+          <div className="space-y-4 sm:space-y-5">
+            {/* 5. QUICK PRESETS (Requirement 5: Compact, collapsible section) */}
             <SelfiePresetsBar
               onSelectArchetype={handleSelectSelfieArchetype}
               activeId={activeArchetypeId}
               language={language}
             />
 
-            {/* TWO-COLUMN WORKSTATION STUDIO GRID */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              {/* Right / Left Column 1: Progressive 4-Stage Stepper Controls (7 cols) */}
-              <div className="lg:col-span-7 space-y-6">
+            {/* 14 & 15. RESPONSIVE WORKSTATION ARCHITECTURE: Mobile First, Desktop Expanded */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-start">
+              {/* PRIMARY COLUMN: Main Workflow Scene Builder (7 cols on lg, full width on mobile) */}
+              <div className="lg:col-span-7 space-y-4">
+                {/* 2, 3, 4. MAIN WORKFLOW: 4-Stage Wizard with Sticky Progress & Fixed Navigation */}
                 <SelfieSceneComposer
                   state={selfieState}
                   onChange={handleSelfieStateChange}
+                  onGeneratePrompt={handleScrollToPrompt}
                   language={language}
                 />
               </div>
 
-              {/* Right / Left Column 2: Sticky Studio Monitor & Live Prompt Terminal (5 cols) */}
-              <div className="lg:col-span-5 lg:sticky lg:top-20 space-y-4">
-                {/* Spatial Metrics Visualizer */}
-                <SpatialVisualizer
+              {/* SECONDARY & TECHNICAL COLUMN: Summary, Spatial Metrics, Validation, Output (5 cols on lg) */}
+              <div className="lg:col-span-5 space-y-3.5 lg:sticky lg:top-18">
+                {/* 6. LIVE SCENE SUMMARY (Requirement 6: Compact Chips/Rows) */}
+                <LiveSceneSummary
                   state={selfieState}
                   armReachMeters={selfiePrompts.spatialSummary.armReachMeters}
                   language={language}
                 />
 
-                {/* Physical Validation Matrix Card (15 rules check + 1-click Auto-Fix) */}
+                {/* 9 & 10. PHYSICAL VALIDATION (Requirements 9 & 10: Compact, no false precision, expandable) */}
                 <PhysicalValidationCard
                   checks={selfiePrompts.validationReport.checks}
                   passedAll={selfiePrompts.validationReport.passedAll}
@@ -268,12 +217,21 @@ export default function Home() {
                   language={language}
                 />
 
-                {/* Live Compiled Prompt Output Terminal */}
-                <SelfieOutputView
-                  compiled={selfiePrompts}
-                  onSimulate={() => setIsSimulationOpen(true)}
+                {/* 7 & 8. SPATIAL METRICS (Requirements 7 & 8: Compact key info + View Details + User vs Engine) */}
+                <SpatialVisualizer
+                  state={selfieState}
+                  armReachMeters={selfiePrompts.spatialSummary.armReachMeters}
                   language={language}
                 />
+
+                {/* 11 & 12. FINAL PROMPT OUTPUT (Requirements 11 & 12: ChatGPT/Gemini primary, More menu, Copy CTA) */}
+                <div ref={promptOutputRef}>
+                  <SelfieOutputView
+                    compiled={selfiePrompts}
+                    onSimulate={() => setIsSimulationOpen(true)}
+                    language={language}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -281,42 +239,7 @@ export default function Home() {
 
         {/* MODE 2: GENERAL PHYSICS ENGINE */}
         {appMode === 'general_physics' && (
-          <div className="space-y-6 sm:space-y-8">
-            <section className="text-center space-y-2 relative py-1">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-semibold">
-                <Atom className="w-3.5 h-3.5" />
-                <span>
-                  {isAr
-                    ? 'المحرك الفيزيائي: بصريات، حرارة، وميكانيكا كلاسيكية'
-                    : 'General Optical, Thermal & Classical Mechanics Simulation'}
-                </span>
-              </div>
-
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-100">
-                {isAr ? (
-                  <>
-                    محرك البرومبت الفيزيائي العام لـ{' '}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400">
-                      ChatGPT و Gemini
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    General Physics Prompt Engine for{' '}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400">
-                      ChatGPT & Gemini
-                    </span>
-                  </>
-                )}
-              </h1>
-
-              <p className="max-w-2xl mx-auto text-xs text-zinc-400 leading-relaxed">
-                {isAr
-                  ? 'قانون التربيع العكسي لتضاؤل الضوء (1/d²)، مثلث التعريض الحقيقي للكاميرا، درجات حرارة كلفن، وخشونة PBR غير الصفرية لمنع التجميل والتنعيم الاصطناعي.'
-                  : 'Deconstruct reality into deterministic physical variables: inverse-square light attenuation (1/d²), camera exposure triangles, thermodynamic Kelvin scales, and non-zero PBR roughness.'}
-              </p>
-            </section>
-
+          <div className="space-y-5 sm:space-y-6">
             {/* Presets */}
             <PresetSelector
               language={language}
@@ -386,19 +309,19 @@ export default function Home() {
       />
 
       {/* Footer */}
-      <footer className="mt-12 border-t border-zinc-800/80 bg-zinc-950 py-6 text-center text-xs text-zinc-500">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <footer className="mt-8 border-t border-zinc-800/80 bg-zinc-950 py-4 text-center text-xs text-zinc-500">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <Smartphone className="w-4 h-4 text-emerald-400" />
-            <span className="font-semibold text-zinc-400">
-              {isAr ? 'استوديو سيلفي التوافق المشهدي والفيزياء الواقعية' : 'Selfie Scene Compatibility & Physics Studio'}
+            <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="font-semibold text-zinc-400 text-xs">
+              {isAr ? 'استوديو سيلفي التوافق المشهدي' : 'Selfie Scene Compatibility Studio'}
             </span>
-            <span className="text-[10px] text-zinc-400 font-mono">v3.8 Flash</span>
+            <span className="text-[10px] text-zinc-400 font-mono">v3.8</span>
           </div>
           <p className="text-[11px] text-zinc-400">
             {isAr
-              ? 'مبني وفق ميثاق التوافق المشهدي ومنع التجميل الرقمي لنماذج ChatGPT و Gemini ومولدات الصور.'
-              : 'Engineered according to scene compatibility standards & anti-smoothing constraints for ChatGPT & Gemini.'}
+              ? 'مبني وفق ميثاق التوافق المشهدي ومنع التجميل الرقمي لنماذج ChatGPT و Gemini.'
+              : 'Engineered according to scene compatibility standards for ChatGPT & Gemini.'}
           </p>
         </div>
       </footer>

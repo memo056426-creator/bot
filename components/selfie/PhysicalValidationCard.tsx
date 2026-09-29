@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { PhysicalValidationItem } from '@/types/selfie-engine';
-import { ShieldCheck, CheckCircle2, AlertTriangle, XCircle, Wrench } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, AlertTriangle, XCircle, Wrench, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface PhysicalValidationCardProps {
   checks: PhysicalValidationItem[];
@@ -18,91 +18,108 @@ export function PhysicalValidationCard({
   language,
 }: PhysicalValidationCardProps) {
   const isAr = language === 'ar';
+  const [showDetails, setShowDetails] = useState(false);
 
-  const errorsCount = checks.filter((c) => !c.passed && c.severity === 'error').length;
-  const warningsCount = checks.filter((c) => c.severity === 'warning').length;
+  const errors = checks.filter((c) => !c.passed && c.severity === 'error');
+  const warnings = checks.filter((c) => c.severity === 'warning');
+  const passedCount = checks.filter((c) => c.passed).length;
+  const totalCount = checks.length;
 
   return (
-    <div className="bg-zinc-950 border border-zinc-800/90 rounded-2xl p-4 sm:p-5 shadow-xl space-y-3">
-      {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-zinc-800 flex-wrap gap-2">
-        <div className="flex items-center gap-2">
-          <div
-            className={`p-1.5 rounded-lg border ${
-              passedAll
-                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-            }`}
-          >
-            <ShieldCheck className="w-4 h-4" />
-          </div>
-          <div>
-            <h4 className="font-bold text-sm text-zinc-100">
-              {isAr ? 'مصفوفة التحقق الفيزيائي التلقائي (Physical Validation)' : 'Automated Physical Validation Matrix'}
-            </h4>
-            <p className="text-[11px] text-zinc-400">
-              {isAr
-                ? 'فحص توافق مركز الثقل، مسافة الذراع، مصادر الضوء، وتلامس الأسطح'
-                : 'Real-time verification of center of mass, arm reach, diegetic light, and surface contact'}
-            </p>
-          </div>
-        </div>
-
-        {/* Status Badge + Auto-fix */}
+    <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-3.5 space-y-2.5 shadow-lg">
+      {/* COMPACT SUMMARY (Requirements 9 & 10) */}
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
           {passedAll ? (
-            <span className="px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-700/60 text-emerald-300 font-mono text-[11px] font-semibold flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-              {isAr ? 'متطابق فيزيائياً 100%' : '100% Physically Coherent'}
-            </span>
+            <div className="w-6 h-6 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+            </div>
           ) : (
+            <div className="w-6 h-6 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+              <AlertTriangle className="w-3.5 h-3.5" />
+            </div>
+          )}
+
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-xs text-zinc-100">
+                {passedAll
+                  ? (isAr ? 'لم يتم رصد أي تعارض فيزيائي' : 'No physical conflicts detected')
+                  : (isAr ? `⚠ تم رصد ${errors.length} تعارض فيزيائي` : `⚠ ${errors.length} physical conflict detected`)}
+              </span>
+              <span className="text-[10px] font-mono text-zinc-400">
+                ({passedCount}/{totalCount} {isAr ? 'قواعد' : 'checks'})
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Controls: Auto-Fix if error, plus View Details toggle */}
+        <div className="flex items-center gap-2">
+          {!passedAll && onAutoFix && (
             <button
               onClick={onAutoFix}
-              className="px-3 py-1 rounded-full bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-semibold text-xs flex items-center gap-1.5 transition"
+              className="px-2.5 py-1 rounded-md bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-semibold text-[11px] flex items-center gap-1 transition"
             >
-              <Wrench className="w-3.5 h-3.5" />
-              <span>{isAr ? `إصلاح ${errorsCount} تعارض تلقائياً` : `Auto-Fix ${errorsCount} Issues`}</span>
+              <Wrench className="w-3 h-3" />
+              <span>{isAr ? 'إصلاح التعارض' : 'Auto-Fix'}</span>
             </button>
           )}
+
+          <button
+            onClick={() => setShowDetails(!showDetails)}
+            className="text-[11px] text-zinc-400 hover:text-zinc-200 flex items-center gap-1 font-medium transition"
+          >
+            <span>
+              {showDetails
+                ? (isAr ? 'إخفاء الفحوصات' : 'Hide Checks')
+                : (isAr ? 'عرض تفاصيل الفحص' : 'View Validation Details')}
+            </span>
+            {showDetails ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          </button>
         </div>
       </div>
 
-      {/* Grid of Validation Checks */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-1">
-        {checks.map((check, idx) => {
-          const isError = !check.passed && check.severity === 'error';
-          const isWarning = check.severity === 'warning';
+      {/* EXPANDABLE VALIDATION DETAILS */}
+      {showDetails && (
+        <div className="pt-2 border-t border-zinc-800 space-y-2 animate-in fade-in">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            {checks.map((check, idx) => {
+              const isError = !check.passed && check.severity === 'error';
+              const isWarning = check.severity === 'warning';
 
-          return (
-            <div
-              key={idx}
-              className={`p-2.5 rounded-xl border text-xs flex items-start gap-2 transition ${
-                isError
-                  ? 'bg-red-950/30 border-red-800/60 text-red-200'
-                  : isWarning
-                  ? 'bg-amber-950/30 border-amber-800/60 text-amber-200'
-                  : 'bg-zinc-900/50 border-zinc-800/70 text-zinc-300'
-              }`}
-            >
-              {isError ? (
-                <XCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
-              ) : isWarning ? (
-                <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              ) : (
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-              )}
-              <div className="space-y-0.5">
-                <span className="font-semibold block text-[11px]">
-                  {isAr ? check.titleAr : check.titleEn}
-                </span>
-                <p className="text-[10px] text-zinc-400 leading-relaxed">
-                  {isAr ? check.detailAr : check.detailEn}
-                </p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+              return (
+                <div
+                  key={idx}
+                  className={`p-2 rounded-lg border flex items-start gap-2 ${
+                    isError
+                      ? 'bg-red-950/20 border-red-800/50 text-red-200'
+                      : isWarning
+                      ? 'bg-amber-950/20 border-amber-800/50 text-amber-200'
+                      : 'bg-zinc-900/60 border-zinc-800 text-zinc-300'
+                  }`}
+                >
+                  {isError ? (
+                    <XCircle className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" />
+                  ) : isWarning ? (
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                  ) : (
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                  )}
+                  <div className="space-y-0.5">
+                    <span className="font-semibold block text-[11px]">
+                      {isAr ? check.titleAr : check.titleEn}
+                    </span>
+                    <p className="text-[10px] text-zinc-400 leading-relaxed">
+                      {isAr ? check.detailAr : check.detailEn}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

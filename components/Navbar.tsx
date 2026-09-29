@@ -1,71 +1,100 @@
 'use client';
 
 import React from 'react';
-import { Atom, ShieldCheck, Sparkles, BookOpen, RotateCcw, Languages, ExternalLink } from 'lucide-react';
+import { Smartphone, Atom, BookOpen, RotateCcw, Languages } from 'lucide-react';
 
 interface NavbarProps {
   language: 'ar' | 'en';
   onToggleLanguage: () => void;
   onOpenRules: () => void;
   onReset: () => void;
+  appMode: 'selfie' | 'general_physics';
+  onSelectMode: (mode: 'selfie' | 'general_physics') => void;
 }
 
-export function Navbar({ language, onToggleLanguage, onOpenRules, onReset }: NavbarProps) {
+export function Navbar({
+  language,
+  onToggleLanguage,
+  onOpenRules,
+  onReset,
+  appMode,
+  onSelectMode,
+}: NavbarProps) {
   const isAr = language === 'ar';
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-zinc-800 bg-zinc-950/85 backdrop-blur-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Brand / Logo */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 via-cyan-500/20 to-indigo-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
-            <Atom className="w-5 h-5 animate-[spin_12s_linear_infinite]" />
+    <header className="sticky top-0 z-40 w-full border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur-md">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 h-14 flex items-center justify-between gap-2">
+        {/* Brand / Title */}
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            {appMode === 'selfie' ? (
+              <Smartphone className="w-4 h-4" />
+            ) : (
+              <Atom className="w-4 h-4" />
+            )}
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-base sm:text-lg text-zinc-100 tracking-tight">
-                {isAr ? 'محرك البرومبت الفيزيائي' : 'Physics Prompt Engine'}
-              </span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-medium bg-emerald-950/80 text-emerald-400 border border-emerald-800/60">
-                v3.8 Flash
-              </span>
-            </div>
-            <p className="text-xs text-zinc-400 hidden sm:block">
-              {isAr
-                ? 'محاكاة بصرية وميكانيكية صارمة موجهة لـ ChatGPT و Gemini'
-                : 'Deterministic Physics Simulation Engine for ChatGPT & Gemini'}
-            </p>
-          </div>
+          <span className="font-bold text-sm sm:text-base text-zinc-100 tracking-tight hidden sm:inline">
+            {isAr ? 'استوديو السيلفي والفيزياء' : 'Selfie & Physics Studio'}
+          </span>
+        </div>
+
+        {/* Compact Mode Selector (Requirement 1) */}
+        <div className="flex items-center p-0.5 rounded-lg bg-zinc-900 border border-zinc-800 text-xs">
+          <button
+            onClick={() => onSelectMode('selfie')}
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-md font-medium transition ${
+              appMode === 'selfie'
+                ? 'bg-emerald-500 text-zinc-950 font-bold shadow-sm'
+                : 'text-zinc-400 hover:text-zinc-200'
+            }`}
+          >
+            <Smartphone className="w-3.5 h-3.5" />
+            <span className="text-[11px] sm:text-xs">
+              {isAr ? 'سيلفي التوافق المشهدي' : 'Scene Compatibility Studio'}
+            </span>
+          </button>
+
+          <button
+            onClick={() => onSelectMode('general_physics')}
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-md font-medium transition ${
+              appMode === 'general_physics'
+                ? 'bg-cyan-500 text-zinc-950 font-bold shadow-sm'
+                : 'text-zinc-400 hover:text-zinc-200'
+            }`}
+          >
+            <Atom className="w-3.5 h-3.5" />
+            <span className="text-[11px] sm:text-xs">
+              {isAr ? 'المحرك الفيزيائي العام' : 'General Physics Engine'}
+            </span>
+          </button>
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Rules / Specs Button */}
+        <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={onOpenRules}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-zinc-300 hover:text-white bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 transition"
-            title={isAr ? 'عرض المواصفات والميثاق الفيزيائي' : 'View Engineering Specs'}
+            className="p-1.5 sm:px-2.5 sm:py-1 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 text-xs font-medium transition flex items-center gap-1"
+            title={isAr ? 'الميثاق الفيزيائي' : 'Physics Specs'}
           >
             <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="hidden md:inline">{isAr ? 'الميثاق الفيزيائي' : 'Physics Specs'}</span>
+            <span className="hidden md:inline">{isAr ? 'الميثاق' : 'Specs'}</span>
           </button>
 
-          {/* Reset Button */}
           <button
             onClick={onReset}
-            className="p-2 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 rounded-lg border border-transparent hover:border-zinc-800 transition"
-            title={isAr ? 'إعادة ضبط للافتراضي' : 'Reset to default'}
+            className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition"
+            title={isAr ? 'إعادة ضبط للافتراضي' : 'Reset'}
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="w-3.5 h-3.5" />
           </button>
 
-          {/* Language Switcher */}
           <button
             onClick={onToggleLanguage}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition shadow-sm"
+            className="p-1.5 sm:px-2 sm:py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 text-xs font-semibold transition"
           >
-            <Languages className="w-3.5 h-3.5" />
-            <span>{isAr ? 'English' : 'العربية'}</span>
+            <Languages className="w-3.5 h-3.5 sm:hidden" />
+            <span className="hidden sm:inline">{isAr ? 'EN' : 'عربي'}</span>
           </button>
         </div>
       </div>
